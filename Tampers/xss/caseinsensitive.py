@@ -1,5 +1,6 @@
 import re
-from main_modules.settings import PRIORITY
+from main_modules.settings import PRIORITY, TYPE
+__classificationtype__=TYPE.UNIVERSAL
 __priority__ = PRIORITY.LOW
 
 def tamper(payload, **kwargs):

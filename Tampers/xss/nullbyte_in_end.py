@@ -1,4 +1,5 @@
-from main_modules.settings import PRIORITY
+from main_modules.settings import PRIORITY, TYPE
+__classificationtype__=TYPE.BackEND_SPECIFIED
 __priority__ = PRIORITY.LOWEST
 
 def tamper(payload, **kwargs):

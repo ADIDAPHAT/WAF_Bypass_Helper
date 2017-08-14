@@ -34,17 +34,18 @@ def get_sender(url,bypass=None,cookie=None,useproxy=None,get_full_request=False,
         else:
             meanings_array=re.findall(r'(?<=\=)\w*',SplitResult.query)
     if bypass:       
-        # как красиво обрабатывать наличие порта?
+        
         bypass=urllib.quote(bypass, safe='')
         if post:
             my_url=''
         else:
             my_url=SplitResult.scheme+'://'+SplitResult.hostname+'/'+SplitResult.path+'?'
         postdata=''
+        i=0
         for param in param_array:
-            i=0
             for prm_to_atack in request_param_for_atack:
                 if param==prm_to_atack:
+                    print (param+' '+prm_to_atack+' '+str(i))
                     meanings_array[i]=bypass
                 i+=1
         i=0
