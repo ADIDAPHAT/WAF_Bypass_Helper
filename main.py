@@ -72,13 +72,12 @@ def mutation(files,mutation_array,technik,classification,step=2):
                 print(u'Import '+module_name+' error')
                 sys.exit()
             else:
-                # нужно посчитать на сколько уровней ниже основного модуля находится наше правило, и столько раз вызвать getattr(для автоматизации на будущее)
+
                 obj=getattr(importet_module,technik)
                 obj=getattr(obj,module_name)
                 priority = PRIORITY.NORMAL if not hasattr(obj, "__priority__") else obj.__priority__
                 classification_type = TYPE.BackEND_SPECIFIED if not hasattr(obj,"__classificationtype__") else obj.__classificationtype__
                 specified_name = 'NONE' if not hasattr(obj,"__specified_name__") else obj.__specified_name__
-                # Если пользователь задал использование специфичной атаки(пример imagetrgik)
                 if classification and step==1:
                     regex=re.escape(classification)
                     if re.search(regex,specified_name,flags=re.IGNORECASE) is not None:
@@ -127,7 +126,6 @@ def mutation(files,mutation_array,technik,classification,step=2):
                                         myprint("i:"+str(i)+" Method:"+module_name+  ' Priority '+str(priority)+' '+result,1)
                                         new_mutation_array.insert(i,[module_name+' '+new_el[0],priority,result])
                                         new_mutation_array.remove(new_el)
-                                        #write_to_file(result,outputfile)
                                     else:
                                         myprint("Method: "+module_name+" nothing to do " + result,1)
                                 else:
@@ -141,9 +139,49 @@ def myprint(string,log_level):
     if log_level==verbose and verbose or log_level==0:
         print(string)
 
+def easy_bypass(technik,string):
+    try:
+        files = open(str(directory)+'/'+str(technik)+'/__init__.py')
+    except Exception:
+        print(u'Dir '+mycwd+'/'+str(directory)+'/'+str(technik)+' or __init__.py not found')
+        sys.exit()
+    else:
+        files.close
+        files = os.listdir(str(directory)+'/'+str(technik))
+        for filename in files:
+            if filename!='__init__.py' and re.search(r'.pyc',filename) is None and os.path.isfile(str(directory)+'/'+str(technik)+'/'+filename):
+                module_name=filename[:-3]
+                try:
+                    importet_module=__import__(directory+'.'+technik+'.'+module_name)
+                except Exception:
+                    print(u'Import '+module_name+' error')
+                    sys.exit()
+                else:
+                    obj=getattr(importet_module,technik)
+                    obj=getattr(obj,module_name)
+                    priority = PRIORITY.NORMAL if not hasattr(obj, "__priority__") else obj.__priority__
+                    result=obj.tamper(string)
+                    if type(result)==list:
+                        print ('----------- more than 1 result --------------')
+                        for el in result:
+                            if el!=string:
+                                print ("Method:"+module_name+'Result: '+el)
+                                write_to_file(el,outputfile)
+                            else:
+                                print("Method: "+module_name+" nothing to do")
+
+                    elif type(result)==str:
+                        if result!=string:
+                            print ("Method:"+module_name+'Result: '+result)
+                            write_to_file(result,outputfile)
+                        else:
+                            print("Method: "+module_name+" nothing to do")
+                    else:
+                        print ("Ahtung "+str(type(result))+"Method:"+module_name )
+                        print (str(result))
 
 def main():
-    global directory, outputfile,injection_file, specifiedattacktechnik, dbname, type_atack, injection_element, specifiedbackend, url_for_atack, request_param_for_atack, cookie,proxy, post,verbose
+    global directory, easy, timeout, outputfile, injection_file, specifiedattacktechnik, dbname, type_atack, injection_element, specifiedbackend, url_for_atack, request_param_for_atack, cookie,proxy, post,verbose
     directory='Tampers'
     parser=createParser()
     atack_params=parser.parse_args()
@@ -161,8 +199,13 @@ def main():
     proxy=atack_params.proxy
     post=atack_params.post
     verbose=atack_params.V
+    easy=atack_params.easy
+    timeout=atack_params.timeout
     if (injection_element or injection_file) and type_atack:
-        use_bypass(type_atack,injection_element)       
+        if easy:
+            easy_bypass(type_atack,injection_element)
+        else:
+            use_bypass(type_atack,injection_element)       
     else:
         print ('No required parameters: -s or --injfile and -t. Please read help(-h)')
         sys.exit()
@@ -181,7 +224,9 @@ def createParser ():
     parser.add_argument ('-c','--cookie', help='cookie_name : cookie')
     parser.add_argument ('-V', help='Verbose')
     parser.add_argument ('--proxy',action='store_const',const=True, help='use proxy from settings.py')
+    parser.add_argument ('--easy',action='store_const',const=True, help='show all bypass for your atack without research and mutation algoritm')
     parser.add_argument ('--post', help='post request')
+    parser.add_argument ('--timeout', help='the pause between requests set in seconds')
     return parser
 
 def write_to_file(string,filename):

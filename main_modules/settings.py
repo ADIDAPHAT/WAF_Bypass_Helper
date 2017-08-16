@@ -29,6 +29,7 @@ class TYPE:
 class NETWORK:
     http_proxy  = "http://@127.0.0.1:8080"
     https_proxy = "https://@127.0.0.1:8080"
-    user_agent="\'User-Agent\':\'Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0\'"
-    accept_language='\'Accept-Language\':\'en-US,en;q=0.5\''
-    accept_encoding='\'Accept-Encoding\':\'gzip, deflate\''
+    user_agent='Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0'
+    accept_language='en-US,en;q=0.5'
+    accept_encoding='gzip, deflate'
+    content_type ='application/x-www-form-urlencoded'

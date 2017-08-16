@@ -10,22 +10,20 @@ def tamper(payload, **kwargs):
     >>> tamper("")
     '<IMG SRC=JaVaScRiPt:alert('XSS')>'
     """
-    string=''
-    for word in payload.split(' '):
-        if re.search('\w',word):
-            new_word=''
-            #for letter in word:
-            i=0
-            while i<len(word):
-                if i%2==0:
-                    new_word=new_word+word[i].upper()
-                else:
-                    new_word=new_word+word[i].lower()
-                i+=1
-            string=string+' '+new_word
-        else:
-            string=string+' '+word
+    string=re.sub(r"\w*",convert_this,str(payload))
             
 
 
     return (string) if payload else payload
+
+def convert_this(string):
+    i=0
+    string=string.group()
+    new_word=''
+    for leter in string:
+        if i%2==0:
+            new_word=new_word+leter.upper()
+        else:
+            new_word=new_word+leter.lower()
+        i+=1
+    return new_word

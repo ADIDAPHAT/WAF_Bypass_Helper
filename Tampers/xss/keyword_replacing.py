@@ -14,14 +14,13 @@ def tamper(payload, **kwargs):
     <scr<script>ipt>alert('XSS')</scr<script>ipt>
     """
     result=[]
-    string=re.sub(r"(?<=[<\s])[\w]*(?=[>=:])",convert_this,str(payload))
-    if string!=payload:
-        result.append(string)
-    string=re.sub(r"(?<=[=:])[\w]*(?=[;\s():])",convert_this,str(string))
+    string=re.sub(r"[<]/*(\w)*[>]",convert_this,str(payload))
+    string=re.sub(r"\s[\w]*(?=[=:])",convert_this,string)
+    string=re.sub(r"(?<=[=:])[\w]*(?=[;\s():])",convert_this,string)
     if string!=payload:
         result.append(string)
 
-    return (result) if payload else payload
+    return (string) if payload else payload
 
 def convert_this(string):
     new_word=[]

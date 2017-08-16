@@ -13,6 +13,10 @@ from settings import NETWORK
 
 def get_sender(url,bypass=None,cookie=None,useproxy=None,get_full_request=False,request_param_for_atack=None,post=None):
     SplitResult=urlparse.urlsplit(url)
+    cookie_inject_name=None
+    if re.search('cookie:',request_param_for_atack):
+        #inject in cookie
+        cookie_inject_name=request_param_for_atack.split(':')[1]
     if type(request_param_for_atack)==str:
         request_param_for_atack=re.split('[|;,]',request_param_for_atack)
     if post:
@@ -45,7 +49,6 @@ def get_sender(url,bypass=None,cookie=None,useproxy=None,get_full_request=False,
         for param in param_array:
             for prm_to_atack in request_param_for_atack:
                 if param==prm_to_atack:
-                    print (param+' '+prm_to_atack+' '+str(i))
                     meanings_array[i]=bypass
                 i+=1
         i=0
@@ -68,24 +71,30 @@ def get_sender(url,bypass=None,cookie=None,useproxy=None,get_full_request=False,
     user_agent=NETWORK.user_agent
 
     # mb some thig different in accept?
-    accept='\'Accept\':\'application/json, text/javascript, */*; q=0.01\''
     accept_language=NETWORK.accept_language
+    content_type= NETWORK.content_type
     accept_encoding=NETWORK.accept_encoding
-    referer='\'Referer\':\''+url+'\''
+    referer=url
 
     # Need get cookie from user
+    cookie_param_array=[]
+    cookie_meanings_array=[]
+    inj_cookie={}
     if cookie:
-        a=cookie.split(':')
-        cookie={a[0]:a[1]}
-
-    headers={host,user_agent,accept,accept_language,accept_encoding,referer}
-    
+        cookies=cookie.split(';')
+        for cookie_el in cookies:
+            cookie_param_array.append((re.search(r'\S*(?=\=)',cookie_el)).group())
+            cookie_meanings_array.append((re.search(r'(?<==)\S*',cookie_el)).group())
+            if cookie_inject_name and cookie_inject_name==cookie_param_array[-1]:
+                cookie_meanings_array[-1]=bypass
+            inj_cookie.update({cookie_param_array[-1]:cookie_meanings_array[-1]})
+    headers={'Host':SplitResult.netloc,'User-Agent':user_agent,'Content-Type':content_type,'Accept-Language':accept_language,'Accept-Encoding':accept_encoding,'Referer':referer} 
     if useproxy:
         try:
             if post:
-                response=requests.post(url,cookies=cookie,proxies=proxyDict,data=postdata)
+                response=requests.post(url,cookies=inj_cookie,proxies=proxyDict,data=postdata,headers=headers)
             else: 
-                response=requests.get(my_url,cookies=cookie,proxies=proxyDict)
+                response=requests.get(my_url,cookies=inj_cookie,proxies=proxyDict,headers=headers)
         except:
             print("Can not connect to "+url)
             print("We use proxy:"+http_proxy)
@@ -93,14 +102,13 @@ def get_sender(url,bypass=None,cookie=None,useproxy=None,get_full_request=False,
     else:
         try:
             if post:
-                response=requests.post(url,data=postdata,cookies=cookie)            
+                response=requests.post(url,data=postdata,cookies=inj_cookie,headers=headers)            
             else:
-                response=requests.get(my_url,cookies=cookie)
+                response=requests.get(my_url,cookies=inj_cookie,headers=headers)
         except:
             print("Can not connect "+url) 
             sys.exit()
 
-    #print("stage_3 url: "+url)
     if (get_full_request==True):
         return(response.content)
     return(response.status_code)
@@ -134,10 +142,4 @@ def bypass_tester(my_url,bypass,cookie,proxy,response,request_param_for_atack,po
             print ('Nothing '+str(result)[0])
             return 0
 
-
-if __name__ == "__main__": 
-    my_url='http://challenge01.root-me.org/web-serveur/ch9/'
-    post='login=123&password=456'
-
-    response1=bypass_tester(my_url,'$20==!','cOOka:test',True,False,'password',post)
 
