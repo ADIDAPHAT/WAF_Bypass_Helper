@@ -13,7 +13,7 @@
     usage get: python main.py -t pathtr -u "atacked_server_url?param1=1&param2=2" -s "/etc/passwd" -p param1
 
 
-#Explanations to the parameters used:
+# Explanations to the parameters used:
 
 ## --cookie "cookie_if_it_need"
     All cookies which must be sent
@@ -39,9 +39,9 @@
     file_to_output         ----  A file containing only the found mutations
     file_to_output.fool    ----  A file containing the order of creating these mutations
 
-#Type of attack
+# Type of attack
 
-    ##sqli
-    ##xss
-    ##ldapi
-    ##pathtr
+    ## sqli
+    ## xss
+    ## ldapi
+    ## pathtr
