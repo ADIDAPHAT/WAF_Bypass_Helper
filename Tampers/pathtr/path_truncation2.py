@@ -13,7 +13,7 @@ def tamper(payload, **kwargs):
     """
     repeat_el='../'
 
-    while len(payload)<4096:
+    while payload.__sizeof__()<4096:
         payload=payload+repeat_el
 
 

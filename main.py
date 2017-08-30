@@ -100,13 +100,13 @@ def mutation(files,mutation_array,technik,classification,step=2):
                                 for r in result:
                                     if re.search(re.escape(new_el[2]),r) is not None:
                                         continue
-                                    is_true=bypass_tester(url_for_atack,r,cookie,proxy,False,request_param_for_atack,post)
+                                    is_true=bypass_tester(url_for_atack,r,cookie,proxy,False,request_param_for_atack,post,injfile)
                                     if is_true==1:
                                         new_mutation_array.insert(i,[module_name+' '+new_el[0],priority,result])
                             else:
                                 if re.search(re.escape(new_el[2]),result) is not None:
                                     continue
-                                is_true=bypass_tester(url_for_atack,result,cookie,proxy,False,request_param_for_atack,post)
+                                is_true=bypass_tester(url_for_atack,result,cookie,proxy,False,request_param_for_atack,post,injfile)
                                 if is_true==1:
                                     new_mutation_array.insert(i,[module_name+' '+new_el[0],priority,result])
                 for new_el in new_mutation_array:
@@ -181,7 +181,7 @@ def easy_bypass(technik,string):
                         print (str(result))
 
 def main():
-    global directory, easy, timeout, outputfile, injection_file, specifiedattacktechnik, dbname, type_atack, injection_element, specifiedbackend, url_for_atack, request_param_for_atack, cookie,proxy, post,verbose
+    global directory, easy, injfile, timeout, outputfile, injection_file, specifiedattacktechnik, dbname, type_atack, injection_element, specifiedbackend, url_for_atack, request_param_for_atack, cookie,proxy, post,verbose
     directory='Tampers'
     parser=createParser()
     atack_params=parser.parse_args()
@@ -200,19 +200,30 @@ def main():
     post=atack_params.post
     verbose=atack_params.V
     easy=atack_params.easy
+    injfile=atack_params.injfile
     timeout=atack_params.timeout
     if (injection_element or injection_file) and type_atack:
-        if easy:
-            easy_bypass(type_atack,injection_element)
+        if re.match(r'file',injection_element):
+            fuz_file=re.search(r'(?<=file:).*',injection_element).group()
+            fuz_file=open(fuz_file,'r')
+            for line in fuz_file:
+                if easy:
+                    easy_bypass(type_atack,line)
+                else:
+                    use_bypass(type_atack,line)
+            fuz_file.close() 
         else:
-            use_bypass(type_atack,injection_element)       
+            if easy:
+                easy_bypass(type_atack,injection_element)
+            else:
+                use_bypass(type_atack,injection_element)       
     else:
         print ('No required parameters: -s or --injfile and -t. Please read help(-h)')
         sys.exit()
 
 def createParser ():
     parser = argparse.ArgumentParser()
-    parser.add_argument ('-s','--injstring', default='-1', help='string')
+    parser.add_argument ('-s','--injstring', default='-1', help='string or file this injection strings')
     parser.add_argument ('--injfile', default=None, help='File this injection or request')
     parser.add_argument ('-t','--typeofatack',help='[sqli,xss,ldapi,pathtr,xxe]')
     parser.add_argument ('-o','--outputfile', help='only bypass strings')
